@@ -39,11 +39,6 @@ class PostUrlTests(TestCase):
                 response = self.guest_client.get(url)
                 self.assertEqual(response.status_code, expected_value)
 
-    # def test_create_exists_at_desired_location_authorised(self):
-    #     """Страница /create/ доступна авторизованному пользователю"""
-    #     response = self.authorized_client.get('/create/')
-    #     self.assertEqual(response.status_code, HTTPStatus.OK)
-
     def test_pages_avaliable_to_authorized_user(self):
         """Проверка страниц, доступных авторизованному пользователю"""
         urls_responses = {
@@ -56,8 +51,8 @@ class PostUrlTests(TestCase):
                 self.assertEqual(response.status_code, expected_value)
 
     def test_create_url_redirect_anonymous(self):
-        """Страница /create/ перенаправляет анонимного пользователя
-        на страницу авторизации"""
+        """Страницы перенаправляет анонимного 
+        пользователя на страницу авторизации"""
         urls_redirects = {
             '/create/': '/auth/login/?next=/create/',
             '/follow/': '/auth/login/?next=/follow/',

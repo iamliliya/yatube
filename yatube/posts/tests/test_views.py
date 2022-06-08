@@ -1,7 +1,5 @@
-from cgitb import html
 import shutil
 import tempfile
-from urllib import request
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -149,6 +147,7 @@ class PostPagesTests(TestCase):
                 self.assertIsInstance(form_field, expected)
 
     def test_post_create_creates_post(self):
+        """Функция post_create создает пост"""
         response = self.authorized_client.get(reverse('posts:index'))
         count1 = len(response.context['page_obj'])
         Post.objects.create(
@@ -178,6 +177,7 @@ class PostPagesTests(TestCase):
         self.assertEqual(response.context['is_edit'], True)
 
     def test_post_with_group_shows_on_correct_pages(self):
+        """Пост с группой отображается на правильных страницах"""
         response = self.guest_client.get(reverse('posts:index'))
         self.assertIn(self.post, response.context['page_obj'])
         response = self.guest_client.get(reverse(
@@ -199,3 +199,36 @@ class PostPagesTests(TestCase):
             'posts:group_list', kwargs={'slug': 'test_slug2'})
         )
         self.assertNotIn(self.post, response.context['page_obj'])
+
+    def test_user_can_follow_and_unfollow(self):
+        """Авторизованный пользователь может подписываться
+        на других пользователей и удалять их из подписок"""
+        blogger = self.user
+        follower = User.objects.create(username='luke')
+        authorized_client2 = Client()
+        authorized_client2.force_login(user=follower)
+        response = authorized_client2.get(
+            reverse('posts:profile_follow', kwargs={'username': 'darth'})
+        )
+        Follow.objects.create(user=follower, author=blogger)
+        self.assertTrue(Follow.objects.filter(
+            user=follower, author=blogger
+        ))
+        self.assertRedirects(response, f'/profile/{self.user}/')
+
+        response1 = authorized_client2.get(reverse('posts:follow_index'))
+        posts = response1.context['page_obj']
+        self.assertEqual(posts[0], self.post)
+
+        response2 = authorized_client2.get(
+            reverse('posts:profile_unfollow', kwargs={'username': 'darth'})
+        )
+        Follow.objects.filter(user=follower, author=blogger).delete()
+        self.assertFalse(Follow.objects.filter(
+            user=follower, author=blogger
+        ))
+        self.assertRedirects(response2, f'/profile/{self.user}/')
+
+        response3 = authorized_client2.get(reverse('posts:follow_index'))
+        posts = response3.context['page_obj']
+        self.assertNotIn(self.post, posts)

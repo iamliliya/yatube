@@ -269,7 +269,7 @@ class PostCreateFormTests(TestCase):
             ).exists()
         )
 
-    def test_guest_user_cant_comment(self):
+    def test_guest_user_cannot_comment(self):
         """Неавторизованный пользователь не может оставить комментарий"""
         count1 = Comment.objects.count()
         form_data = {'text': 'Test comment'}
