@@ -51,7 +51,7 @@ class PostUrlTests(TestCase):
                 self.assertEqual(response.status_code, expected_value)
 
     def test_create_url_redirect_anonymous(self):
-        """Страницы перенаправляет анонимного 
+        """Страницы перенаправляет анонимного
         пользователя на страницу авторизации"""
         urls_redirects = {
             '/create/': '/auth/login/?next=/create/',
