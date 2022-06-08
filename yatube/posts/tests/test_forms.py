@@ -10,7 +10,6 @@ from django.utils import timezone
 from posts.models import Post, Group, User, Comment
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
-# Падает тест создания формы с картинокй, такого поста в базе нет
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
@@ -249,27 +248,44 @@ class PostCreateFormTests(TestCase):
             ).exists()
         )
 
-    # def test_authorized_user_can_comment(self):
-    #     count1 = Comment.objects.count()
-    #     form_data = {
-    #         'text': 'Test comment'
-    #     }
-    #     response = self.authorized_client.get(
-    #         reverse('posts:post_detail', kwargs={'post_id': self.post.id}),
-    #         data=form_data,
-    #         follow=True
-    #     )
-    #     self.assertEqual(Comment.objects.count(), count1 + 1)
-    #     self.assertRedirects(response, reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
-    #     self.assertTrue(
-    #         Comment.objects.filter(
-    #             text='Test comment',
-    #             author=self.user
-    #         ).exists()
-    #     )
+    def test_authorized_user_can_comment(self):
+        """"Авторизованный пользователь может оставить комментарий"""
+        count1 = Comment.objects.count()
+        form_data = {'text': 'Test comment'}
+        response = self.authorized_client.post(
+            reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(Comment.objects.count(), count1 + 1)
+        self.assertRedirects(response, reverse(
+            'posts:post_detail', kwargs={'post_id': self.post.id})
+        )
+        self.assertTrue(
+            Comment.objects.filter(
+                post=self.post,
+                text='Test comment',
+                author=self.user
+            ).exists()
+        )
 
-# Напишите тесты, которые проверяют, что
-# [] комментировать посты может только авторизованный пользователь
-# если автор не авторизован, то надо сделать авторизацию
-# [] после успешной отправки комментарий появляется на странице поста
-# если автор = авторизованный пользователь, количество комментариев увеличивается
+    def test_guest_user_cant_comment(self):
+        """Неавторизованный пользователь не может оставить комментарий"""
+        count1 = Comment.objects.count()
+        form_data = {'text': 'Test comment'}
+        response = self.guest_client.post(
+            reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(Comment.objects.count(), count1)
+        self.assertRedirects(
+            response, f'/auth/login/?next=/posts/{self.post.id}/comment/'
+        )
+        self.assertFalse(
+            Comment.objects.filter(
+                post=self.post,
+                text='Test comment',
+                author=self.user
+            ).exists()
+        )

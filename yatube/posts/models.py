@@ -77,6 +77,9 @@ class Comment(models.Model):
         ordering = ('-created',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+    
+    def __str__(self) -> str:
+        return self.text
 
 
 class Follow(models.Model):

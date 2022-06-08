@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from ..models import Group, Post, User, POST_TEXT_TRANCATE
+from ..models import Comment, Group, Post, User, POST_TEXT_TRANCATE
 
 
 class PostModelTest(TestCase):
@@ -59,3 +59,24 @@ class GroupModelTest(TestCase):
         group = self.group
         expected_object_name = group.title
         self.assertEqual(expected_object_name, str(group))
+
+
+class CommentModelTest(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='auth')
+        cls.post = Post.objects.create(
+            author=cls.user,
+            text='This is a test text post'
+        )
+        cls.comment = Comment.objects.create(
+            text='Test Comment',
+            post=cls.post,
+            author=cls.user
+        )
+
+    def test_comment_model_has_correct_name(self):
+        comment = self.comment
+        expected_object_name = self.comment.text
+        self.assertEqual(expected_object_name, str(comment))

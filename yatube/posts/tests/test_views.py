@@ -1,5 +1,7 @@
+from cgitb import html
 import shutil
 import tempfile
+from urllib import request
 
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -46,6 +48,11 @@ class PostPagesTests(TestCase):
             group=cls.group,
             image=uploaded
         )
+        cls.comment = Comment.objects.create(
+            post=cls.post,
+            text='Test comment',
+            author=cls.user,
+        )
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -67,7 +74,8 @@ class PostPagesTests(TestCase):
             reverse('posts:post_create'): ('posts/create.html'),
             reverse(
                 'posts:post_edit', kwargs={'post_id': self.post.id}
-            ): ('posts/create.html'),
+            ): 'posts/create.html',
+            reverse('posts:follow_index'): 'posts/follow.html',
         }
         for reverse_name, template in templates_pages_names.items():
             with self.subTest(reverse_name=reverse_name):
@@ -99,12 +107,13 @@ class PostPagesTests(TestCase):
 
     def test_profile_shows_correct_context(self):
         """Шаблон posts/profile сформирован с правильным контекстом"""
-        response = self.guest_client.get(
+        response = self.authorized_client.get(
             reverse('posts:profile', kwargs={'username': 'darth'})
         )
         post = response.context['page_obj'][0]
         author = response.context['author']
         self.assertIn('page_obj', response.context)
+        self.assertIn('following', response.context)
         self.assertEqual(author, self.user)
         self.assertEqual(post.text, self.post.text)
         self.assertEqual(post.group, self.group)
@@ -115,11 +124,16 @@ class PostPagesTests(TestCase):
         response = self.guest_client.get(
             reverse('posts:post_detail', kwargs={'post_id': self.post.id})
         )
-        post = response.context.get('post')
+        post = response.context['post']
+        comment = response.context['comments'][0]
+        self.assertIn('post', response.context)
+        self.assertIn('comments', response.context)
         self.assertEqual(post.text, self.post.text)
         self.assertEqual(post.author, self.user)
         self.assertEqual(post.group, self.group)
         self.assertEqual(post.image, self.post.image)
+        self.assertEqual(comment, self.comment)
+
 
     def test_post_create_shows_correct_context(self):
         """Шаблон post_create сформирован с правильным контекстом"""

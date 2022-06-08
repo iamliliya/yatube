@@ -29,8 +29,8 @@ class PostUrlTests(TestCase):
         """Проверка общедоступных страниц"""
         urls_responses = {
             '/': HTTPStatus.OK,
-            '/group/test_slug/': HTTPStatus.OK,
-            '/profile/darth/': HTTPStatus.OK,
+            f'/group/{self.group.slug}/': HTTPStatus.OK,
+            f'/profile/{self.post.author}/': HTTPStatus.OK,
             f'/posts/{self.post.id}/': HTTPStatus.OK,
             '/unexisting_page/': HTTPStatus.NOT_FOUND,
         }
@@ -39,18 +39,37 @@ class PostUrlTests(TestCase):
                 response = self.guest_client.get(url)
                 self.assertEqual(response.status_code, expected_value)
 
-    def test_create_exists_at_desired_location_authorised(self):
-        """Страница /create/ доступна авторизованному пользователю"""
-        response = self.authorized_client.get('/create/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+    # def test_create_exists_at_desired_location_authorised(self):
+    #     """Страница /create/ доступна авторизованному пользователю"""
+    #     response = self.authorized_client.get('/create/')
+    #     self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_pages_avaliable_to_authorized_user(self):
+        """Проверка страниц, доступных авторизованному пользователю"""
+        urls_responses = {
+            '/create/': HTTPStatus.OK,
+            '/follow/': HTTPStatus.OK,
+        }
+        for url, expected_value in urls_responses.items():
+            with self.subTest(url=url):
+                response = self.authorized_client.get(url)
+                self.assertEqual(response.status_code, expected_value)
 
     def test_create_url_redirect_anonymous(self):
         """Страница /create/ перенаправляет анонимного пользователя
         на страницу авторизации"""
-        response = self.guest_client.get('/create/', follow=True)
-        self.assertRedirects(
-            response, ('/auth/login/?next=/create/')
-        )
+        urls_redirects = {
+            '/create/': '/auth/login/?next=/create/',
+            '/follow/': '/auth/login/?next=/follow/',
+            f'/profile/{self.user}/follow/':
+            f'/auth/login/?next=/profile/{self.user}/follow/',
+            f'/profile/{self.user}/unfollow/':
+            f'/auth/login/?next=/profile/{self.user}/unfollow/',
+        }
+        for url, expected_redirect in urls_redirects.items():
+            with self.subTest(url=url):
+                response = self.guest_client.get(url, follow=True)
+                self.assertRedirects(response, expected_redirect)
 
     def test_post_edit_available_to_author(self):
         """Страница /post/edit/ доступна автору поста"""
@@ -72,11 +91,12 @@ class PostUrlTests(TestCase):
         """Url-адрес использует соответствующий шаблон."""
         url_templates_names = {
             '/': 'posts/index.html',
-            '/group/test_slug/': 'posts/group_list.html',
-            '/profile/darth/': 'posts/profile.html',
+            f'/group/{self.group.slug}/': 'posts/group_list.html',
+            f'/profile/{self.user}/': 'posts/profile.html',
             f'/posts/{self.post.id}/': 'posts/post_detail.html',
             f'/posts/{self.post.id}/edit/': 'posts/create.html',
             '/create/': 'posts/create.html',
+            '/follow/': 'posts/follow.html',
         }
         for address, template in url_templates_names.items():
             with self.subTest(address=address):

@@ -37,19 +37,26 @@ def profile(request, username):
     author = get_object_or_404(User, username=username)
     post_list = author.posts.select_related('group').all()
     page_obj = paginator_for_all(post_list, request)
-    user = request.user
-    following = Follow.objects.filter(user=user, author=author).exists()
-    context = {
-        'author': author,
-        'page_obj': page_obj,
-        'following': following
-    }
-    return render(request, 'posts/profile.html', context)
+    if request.user.is_authenticated:
+        user = request.user
+        following = Follow.objects.filter(user=user, author=author).exists()
+        context = {
+            'author': author,
+            'page_obj': page_obj,
+            'following': following
+        }
+        return render(request, 'posts/profile.html', context)
+    else:
+        context = {
+            'author': author,
+            'page_obj': page_obj
+        }
+        return render(request, 'posts/profile.html', context)
 
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    comments = Comment.objects.select_related('post').all()
+    comments = Comment.objects.filter(post_id=post_id)
     form = CommentForm(request.POST or None)
     context = {
         'post': post,
