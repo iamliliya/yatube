@@ -303,4 +303,3 @@ class PostCreateFormTests(TestCase):
                 author=self.user
             ).exists()
         )
-

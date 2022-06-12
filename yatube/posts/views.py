@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render, redirect
 
 from .forms import PostForm, CommentForm
-from .models import Comment, Follow, Group, Post, User
+from .models import Follow, Group, Post, User
 
 
 def paginator_for_all(post_list, request):
@@ -55,7 +55,6 @@ def profile(request, username):
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     comments = post.comments.select_related('post').all()
-    form = CommentForm
     context = {
         'post': post,
         'form': form,

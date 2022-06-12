@@ -7,11 +7,11 @@ from django import forms
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from posts.forms import CommentForm 
 from posts.models import Comment, Follow, Group, Post, User
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 TEST_COMMENTS_AMOUNT = 10
+
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostPagesTests(TestCase):

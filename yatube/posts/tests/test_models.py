@@ -1,4 +1,3 @@
-from cgitb import text
 from django.test import TestCase
 
 from ..models import Comment, Group, Post, User, POST_TEXT_TRANCATE
@@ -84,7 +83,7 @@ class CommentModelTest(TestCase):
         self.assertEqual(expected_object_name, str(comment))
 
     def test_comment_verbose_name(self):
-        """Поля help_text и verbose_name модели Comment 
+        """Поля help_text и verbose_name модели Comment
         соответствуют ожидаемому."""
         comment = self.comment
         help_text = 'Введите текст комментария'
