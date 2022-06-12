@@ -1,3 +1,4 @@
+from tabnanny import verbose
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -98,3 +99,6 @@ class Follow(models.Model):
 
     def __str__(self) -> str:
         return f'{self.user} - {self.author.all()}'
+
+    class Meta:
+        verbose_name = 'Подписки'

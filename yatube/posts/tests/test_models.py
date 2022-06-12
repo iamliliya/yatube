@@ -1,3 +1,4 @@
+from cgitb import text
 from django.test import TestCase
 
 from ..models import Comment, Group, Post, User, POST_TEXT_TRANCATE
@@ -14,7 +15,7 @@ class PostModelTest(TestCase):
         )
 
     def test_post_model_has_correct_object_name(self):
-        """Проверяем, что у модели Post корректно работает __str__."""
+        """У модели Post корректно работает __str__."""
         post = self.post
         expected_object_name = post.text[:POST_TEXT_TRANCATE]
         self.assertEqual(expected_object_name, str(post))
@@ -77,6 +78,18 @@ class CommentModelTest(TestCase):
         )
 
     def test_comment_model_has_correct_name(self):
+        """У модели Comment корректно работает __str__."""
         comment = self.comment
         expected_object_name = self.comment.text
         self.assertEqual(expected_object_name, str(comment))
+
+    def test_comment_verbose_name(self):
+        """Поля help_text и verbose_name модели Comment 
+        соответствуют ожидаемому."""
+        comment = self.comment
+        help_text = 'Введите текст комментария'
+        verbose_name = 'Текст комментария'
+        self.assertEqual(comment._meta.get_field('text').help_text, help_text)
+        self.assertEqual(
+            comment._meta.get_field('text').verbose_name, verbose_name
+        )

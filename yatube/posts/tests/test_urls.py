@@ -32,6 +32,8 @@ class PostUrlTests(TestCase):
             f'/group/{self.group.slug}/': HTTPStatus.OK,
             f'/profile/{self.post.author}/': HTTPStatus.OK,
             f'/posts/{self.post.id}/': HTTPStatus.OK,
+            '/follow/': HTTPStatus.FOUND,
+            '/create/': HTTPStatus.FOUND,
             '/unexisting_page/': HTTPStatus.NOT_FOUND,
         }
         for url, expected_value in urls_responses.items():
@@ -50,7 +52,7 @@ class PostUrlTests(TestCase):
                 response = self.authorized_client.get(url)
                 self.assertEqual(response.status_code, expected_value)
 
-    def test_create_url_redirect_anonymous(self):
+    def test_urls_redirect_anonymous(self):
         """Страницы перенаправляет анонимного
         пользователя на страницу авторизации"""
         urls_redirects = {

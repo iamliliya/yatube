@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render, redirect
 
 from .forms import PostForm, CommentForm
-from .models import Comment, Follow, Group, Post, User
+from .models import Follow, Group, Post, User
 
 
 def paginator_for_all(post_list, request):
@@ -24,7 +24,7 @@ def index(request):
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    post_list = group.group_posts.select_related('author').all()
+    post_list = group.group_posts.select_related('group').all()
     page_obj = paginator_for_all(post_list, request)
     context = {
         'group': group,
@@ -35,7 +35,7 @@ def group_posts(request, slug):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    post_list = author.posts.select_related('group').all()
+    post_list = author.posts.select_related('author').all()
     page_obj = paginator_for_all(post_list, request)
     if request.user.is_authenticated:
         user = request.user
@@ -51,13 +51,13 @@ def profile(request, username):
             'author': author,
             'page_obj': page_obj
         }
-        return render(request, 'posts/profile.html', context)
+    return render(request, 'posts/profile.html', context)
 
 
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
-    comments = Comment.objects.filter(post_id=post_id)
-    form = CommentForm(request.POST or None)
+    comments = post.comments.select_related('post').all()
+    form = CommentForm
     context = {
         'post': post,
         'form': form,
@@ -115,10 +115,9 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
-    user = Follow.objects.filter(user=request.user).select_related('author')
-    following_list = User.objects.filter(following__in=user)
-    posts = Post.objects.filter(author__in=following_list)
-    post_list = posts.select_related('author', 'group').all()
+    post_list = Post.objects.filter(
+        author__following__user=request.user).select_related(
+            'author', 'group').all()
     page_obj = paginator_for_all(post_list, request)
     context = {
         'page_obj': page_obj,
@@ -130,9 +129,9 @@ def follow_index(request):
 def profile_follow(request, username):
     user = request.user
     author = User.objects.get(username=username)
-    follows = Follow.objects.filter(user=user, author=author)
-    if user != author and not follows.exists():
-        Follow.objects.create(user=user, author=author)
+    user != author
+    Follow.objects.filter(
+        user=user, author=author).get_or_create(user=user, author=author)
     return redirect('posts:profile', author.username)
 
 
@@ -140,7 +139,6 @@ def profile_follow(request, username):
 def profile_unfollow(request, username):
     user = request.user
     author = User.objects.get(username=username)
-    follows = Follow.objects.filter(user=user, author=author)
-    if user != author and follows.exists():
-        Follow.objects.filter(user=user, author=author).delete()
+    user != author
+    Follow.objects.filter(user=user, author=author).delete()
     return redirect('posts:profile', author.username)
