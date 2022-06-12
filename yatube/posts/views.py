@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render, redirect
 
 from .forms import PostForm, CommentForm
-from .models import Follow, Group, Post, User
+from .models import Comment, Follow, Group, Post, User
 
 
 def paginator_for_all(post_list, request):
@@ -40,6 +40,7 @@ def profile(request, username):
     page_obj = paginator_for_all(post_list, request)
     if request.user.is_authenticated:
         user = request.user
+        author != user
         following = Follow.objects.filter(user=user, author=author).exists()
     else:
         following = False
@@ -127,9 +128,9 @@ def follow_index(request):
 def profile_follow(request, username):
     user = request.user
     author = User.objects.get(username=username)
-    user != author
-    Follow.objects.filter(
-        user=user, author=author).get_or_create(user=user, author=author)
+    if user != author:
+        Follow.objects.filter(
+            user=user, author=author).get_or_create(user=user, author=author)
     return redirect('posts:profile', author.username)
 
 
