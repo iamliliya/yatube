@@ -1,13 +1,12 @@
 from django import forms
 
-from .models import Post, Comment
-
+from .models import Comment, Post
 
 AUTHORS_LIST = [
     'донцова',
-    'николас спаркс',
-    'э.л.джеймс',
-    'стефани майер',
+    'спаркс',
+    'джеймс',
+    'майер',
 ]
 
 
@@ -24,9 +23,11 @@ class CommentForm(forms.ModelForm):
 
     def clean_text(self):
         text = self.cleaned_data['text']
-        text = str.casefold(text)
+        text_lower = str.casefold(text)
         change_word = ''
-        if text in AUTHORS_LIST:
-            for i in text:
+        if text_lower in AUTHORS_LIST:
+            for i in text_lower:
                 change_word = change_word + '*'
-        return change_word
+            return change_word
+        else:
+            return text

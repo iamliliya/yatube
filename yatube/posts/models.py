@@ -98,7 +98,7 @@ class Follow(models.Model):
     )
 
     def __str__(self) -> str:
-        return f'{self.user} - {self.author.all()}'
+        return f'{self.user} - {self.author}'
 
     class Meta:
         verbose_name = 'Подписки'

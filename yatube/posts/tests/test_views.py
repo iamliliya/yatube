@@ -7,10 +7,11 @@ from django import forms
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from posts.models import Group, Post, User, Comment, Follow
+from posts.forms import CommentForm 
+from posts.models import Comment, Follow, Group, Post, User
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
-
+TEST_COMMENTS_AMOUNT = 10
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostPagesTests(TestCase):
@@ -132,6 +133,33 @@ class PostPagesTests(TestCase):
         self.assertEqual(post.image, self.post.image)
         self.assertEqual(comment, self.comment)
 
+    def test_post_detail_shows_correct_form(self):
+        """В контекст страницы post_detail передается форма
+        для оставления комментария с полем корректного типа"""
+        response = self.authorized_client.get(
+            reverse('posts:post_detail', kwargs={'post_id': self.post.id})
+        )
+        form = response.context['form']
+        self.assertIsInstance(form.base_fields['text'], forms.fields.CharField)
+
+    def post_detail_gets_comments(self):
+        """На страницу post_detail передаются комментарии
+        для поста в нужном количестве"""
+        objs = [
+            Comment(
+                post=self.post,
+                text=f'Test comment {i}',
+                author=self.user,
+            )
+            for i in range(TEST_COMMENTS_AMOUNT)
+        ]
+        Comment.objects.bulk_create(objs)
+        response = self.authorized_client.get(
+            reverse('posts:post_detail', kwargs={'post_id': self.post.id})
+        )
+        comments = response.context['comments']
+        self.assertEqual(len(comments), TEST_COMMENTS_AMOUNT)
+
     def test_post_create_shows_correct_context(self):
         """Шаблон post_create сформирован с правильным контекстом"""
         response = self.authorized_client.get(reverse('posts:post_create'))
@@ -199,35 +227,38 @@ class PostPagesTests(TestCase):
         )
         self.assertNotIn(self.post, response.context['page_obj'])
 
-    def test_user_can_follow_and_unfollow(self):
-        """Авторизованный пользователь может подписываться
-        на других пользователей и удалять их из подписок"""
-        blogger = self.user
-        follower = User.objects.create(username='luke')
-        authorized_client2 = Client()
-        authorized_client2.force_login(user=follower)
-        response = authorized_client2.get(
-            reverse('posts:profile_follow', kwargs={'username': 'darth'})
+    def test_user_can_follow(self):
+        """Авторизованный пользователь может подписываться на пользователей"""
+        follower = self.user
+        blogger = User.objects.create(username='luke')
+        self.authorized_client.get(
+            reverse('posts:profile_follow', kwargs={'username': 'luke'})
         )
+        self.assertTrue(
+            Follow.objects.filter(user=follower, author=blogger).exists())
+
+    def test_user_can_unfollow(self):
+        """Авторизованный пользователь может отписаться"""
+        follower = self.user
+        blogger = User.objects.create(username='luke')
         Follow.objects.create(user=follower, author=blogger)
-        self.assertTrue(Follow.objects.filter(
-            user=follower, author=blogger
-        ))
-        self.assertRedirects(response, f'/profile/{self.user}/')
-
-        response1 = authorized_client2.get(reverse('posts:follow_index'))
-        posts = response1.context['page_obj']
-        self.assertEqual(posts[0], self.post)
-
-        response2 = authorized_client2.get(
-            reverse('posts:profile_unfollow', kwargs={'username': 'darth'})
+        self.authorized_client.get(
+            reverse('posts:profile_unfollow', kwargs={'username': 'luke'})
         )
-        Follow.objects.filter(user=follower, author=blogger).delete()
-        self.assertFalse(Follow.objects.filter(
-            user=follower, author=blogger
-        ))
-        self.assertRedirects(response2, f'/profile/{self.user}/')
+        self.assertFalse(
+            Follow.objects.filter(user=follower, author=blogger).exists())
 
-        response3 = authorized_client2.get(reverse('posts:follow_index'))
-        posts = response3.context['page_obj']
-        self.assertNotIn(self.post, posts)
+    def test_follower_get_following_posts(self):
+        """Подписчик видит посты пользователя,
+        на которого подписан, в follow_index"""
+        follower = self.user
+        blogger = User.objects.create(username='luke')
+        Follow.objects.create(user=follower, author=blogger)
+        post = Post.objects.create(
+            author=blogger,
+            text='Testing follow_index',
+            group=self.group
+        )
+        response = self.authorized_client.get(reverse('posts:follow_index'))
+        self.assertEqual(response.context['page_obj'][0], post)
+        self.assertNotIn(self.post, response.context['page_obj'])
