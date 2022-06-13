@@ -22,15 +22,10 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = ('text',)
 
-# Теперь все комментарии будут писаться строчными буквами,
-# не могу пока сообразить, как сделать так,
-# чтобы это работало только на нужные слова
-
-    # def clean_text(self):
-    #     comment = self.cleaned_data['text']
-    #     comment_text = comment.lower().split()
-    #     common_words = set(comment_text) & set(AUTHORS_LIST)
-    #     for i in range(len(comment_text)):
-    #         if comment_text[i] in common_words:
-    #             comment_text[i] = len(comment_text[i]) * '*'
-    #     return (' '.join(comment_text))
+    def clean_text(self):
+        comment = self.cleaned_data['text']
+        comment_text = comment.split()
+        for i in range(len(comment_text)):
+            if comment_text[i].lower() in AUTHORS_LIST:
+                comment_text[i] = len(comment_text[i]) * '*'
+        return (' '.join(comment_text))

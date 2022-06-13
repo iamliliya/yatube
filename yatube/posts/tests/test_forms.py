@@ -283,23 +283,23 @@ class PostCreateFormTests(TestCase):
             response, f'/auth/login/?next=/posts/{self.post.id}/comment/'
         )
 
-    # def test_comment_validator(self):
-    #     """Проверяем валидатор"""
-    #     count = Comment.objects.count()
-    #     form_data = {'text': 'Донцова и мистер Спаркс'}
-    #     response = self.authorized_client.post(
-    #         reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
-    #         data=form_data,
-    #         follow=True
-    #     )
-    #     self.assertEqual(Comment.objects.count(), count + 1)
-    #     self.assertRedirects(response, reverse(
-    #         'posts:post_detail', kwargs={'post_id': self.post.id})
-    #     )
-    #     self.assertTrue(
-    #         Comment.objects.filter(
-    #             post=self.post,
-    #             text='******* и мистер ******',
-    #             author=self.user
-    #         ).exists()
-    #     )
+    def test_comment_validator(self):
+        """Проверяем валидатор"""
+        count = Comment.objects.count()
+        form_data = {'text': 'Миссис Донцова и мистер Спаркс'}
+        response = self.authorized_client.post(
+            reverse('posts:add_comment', kwargs={'post_id': self.post.id}),
+            data=form_data,
+            follow=True
+        )
+        self.assertEqual(Comment.objects.count(), count + 1)
+        self.assertRedirects(response, reverse(
+            'posts:post_detail', kwargs={'post_id': self.post.id})
+        )
+        self.assertTrue(
+            Comment.objects.filter(
+                post=self.post,
+                text='Миссис ******* и мистер ******',
+                author=self.user
+            ).exists()
+        )
