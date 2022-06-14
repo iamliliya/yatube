@@ -17,8 +17,7 @@ def index(request):
     post_list = Post.objects.select_related('author', 'group').all()
     page_obj = paginator_for_all(post_list, request)
     context = {
-        'page_obj': page_obj,
-        'index': True
+        'page_obj': page_obj
     }
     return render(request, 'posts/index.html', context)
 
@@ -42,11 +41,6 @@ def profile(request, username):
     following = (
         request.user.is_authenticated
         and Follow.objects.filter(user=user, author=author).exists())
-    # if request.user.is_authenticated:
-    #     user = request.user
-    #     following = Follow.objects.filter(user=user, author=author).exists()
-    # else:
-    #     following = False
     context = {
         'author': author,
         'page_obj': page_obj,
