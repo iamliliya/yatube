@@ -8,12 +8,14 @@ from .models import Follow, Group, Post, User
 
 
 def paginator_for_all(post_list, request):
+    """Паджинатор разбивает на страницы."""
     paginator = Paginator(post_list, settings.POSTS_ON_PAGE)
     page_number = request.GET.get('page')
     return paginator.get_page(page_number)
 
 
 def index(request):
+    """Возвращает главную страницу."""
     post_list = Post.objects.select_related('author', 'group').all()
     page_obj = paginator_for_all(post_list, request)
     context = {
@@ -23,6 +25,7 @@ def index(request):
 
 
 def group_posts(request, slug):
+    """Возвращает все посты из выбранной группы."""
     group = get_object_or_404(Group, slug=slug)
     post_list = group.group_posts.select_related('group').all()
     page_obj = paginator_for_all(post_list, request)
@@ -34,6 +37,7 @@ def group_posts(request, slug):
 
 
 def profile(request, username):
+    """Возвращает посты выбранного пользователя."""
     author = get_object_or_404(User, username=username)
     post_list = author.posts.select_related('author').all()
     page_obj = paginator_for_all(post_list, request)
@@ -50,6 +54,7 @@ def profile(request, username):
 
 
 def post_detail(request, post_id):
+    """Возвращает детальную информацию о посте."""
     post = get_object_or_404(Post, id=post_id)
     comments = post.comments.select_related('post').all()
     form = CommentForm()
@@ -63,6 +68,7 @@ def post_detail(request, post_id):
 
 @login_required
 def post_create(request):
+    """Возвращает форму для создания поста."""
     form = PostForm(request.POST or None, files=request.FILES or None)
     if form.is_valid():
         post = form.save(commit=False)
@@ -77,6 +83,7 @@ def post_create(request):
 
 @login_required
 def post_edit(request, post_id):
+    """Возвращает форму для редактирования поста."""
     post = get_object_or_404(Post, id=post_id)
     if post.author != request.user:
         return redirect('posts:post_detail', post_id)
@@ -98,6 +105,7 @@ def post_edit(request, post_id):
 
 @login_required
 def add_comment(request, post_id):
+    """Возвращает форму для создания комментария."""
     form = CommentForm(request.POST or None)
     post = get_object_or_404(Post, id=post_id)
     if form.is_valid():
@@ -110,6 +118,7 @@ def add_comment(request, post_id):
 
 @login_required
 def follow_index(request):
+    """Возвращает посты пользователей, на которыз подписан юзер."""
     post_list = Post.objects.filter(
         author__following__user=request.user).select_related(
             'author', 'group').all()
@@ -122,6 +131,7 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
+    """Подписывает пользователя на выбранного автора."""
     user = request.user
     author = User.objects.get(username=username)
     if user != author:
@@ -132,6 +142,7 @@ def profile_follow(request, username):
 
 @login_required
 def profile_unfollow(request, username):
+    """Отписывает пользователя от выбранного автора."""
     user = request.user
     author = User.objects.get(username=username)
     Follow.objects.filter(user=user, author=author).delete()

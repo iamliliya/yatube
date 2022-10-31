@@ -36,6 +36,7 @@ class UserUrlTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_users_publicly_avaliable_pages(self):
+        """Проверяет страницы в публичном доступе."""
         urls_responses = {
             '/auth/signup/': HTTPStatus.OK,
             '/auth/logout/': HTTPStatus.OK,
@@ -49,6 +50,7 @@ class UserUrlTests(TestCase):
                 self.assertEqual(response.status_code, expected_value)
 
     def test_users_pages_avaliable_to_authorized(self):
+        """Проверяет страницы, доступные авторизованному пользователю."""
         urls_responses = {
             '/auth/password_change/': HTTPStatus.OK,
             '/auth/password_change/done/': HTTPStatus.OK,

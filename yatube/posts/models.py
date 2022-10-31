@@ -7,6 +7,8 @@ POST_TEXT_TRANCATE = 15
 
 
 class Group(models.Model):
+    """Класс для групп."""
+
     title = models.CharField('имя группы', max_length=200)
     slug = models.SlugField('адрес', unique=True)
     description = models.TextField('описание')
@@ -16,10 +18,13 @@ class Group(models.Model):
         verbose_name_plural = 'Группы'
 
     def __str__(self) -> str:
+        """Возвращает название группы."""
         return self.title
 
 
 class Post(models.Model):
+    """Класс для постов."""
+
     text = models.TextField(
         'Текст поста',
         help_text='Введите текст поста')
@@ -51,10 +56,13 @@ class Post(models.Model):
         verbose_name_plural = 'Записи'
 
     def __str__(self) -> str:
+        """Возвращает обрезанный текст поста."""
         return self.text[:POST_TEXT_TRANCATE]
 
 
 class Comment(models.Model):
+    """Класс для комментариев."""
+
     post = models.ForeignKey(
         Post,
         related_name='comments',
@@ -79,10 +87,13 @@ class Comment(models.Model):
         verbose_name_plural = 'Комментарии'
 
     def __str__(self) -> str:
+        """Возвращает текст комментария."""
         return self.text
 
 
 class Follow(models.Model):
+    """Класс для подписок."""
+
     user = models.ForeignKey(
         User,
         related_name='follower',
@@ -97,6 +108,7 @@ class Follow(models.Model):
     )
 
     def __str__(self) -> str:
+        """Возвращает подписчика и автора, на которого он подписан."""
         return f'{self.user} - {self.author}'
 
     class Meta:

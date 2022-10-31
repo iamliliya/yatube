@@ -4,6 +4,8 @@ from .models import Group, Post, Comment, Follow
 
 
 class PostAdmin(admin.ModelAdmin):
+    """Класс для админки Post."""
+
     list_display = (
         'pk',
         'text',
@@ -19,6 +21,8 @@ class PostAdmin(admin.ModelAdmin):
 
 
 class GroupAdmin(admin.ModelAdmin):
+    """Класс для админки Group."""
+
     list_display = (
         'pk',
         'title',
@@ -29,6 +33,8 @@ class GroupAdmin(admin.ModelAdmin):
 
 
 class CommentAdmin(admin.ModelAdmin):
+    """Класс для админки Comment."""
+
     list_display = (
         'post',
         'pk',
@@ -39,6 +45,8 @@ class CommentAdmin(admin.ModelAdmin):
 
 
 class FollowAdmin(admin.ModelAdmin):
+    """Класс для админки Follow."""
+
     list_display = (
         'user',
         'author'

@@ -1,3 +1,56 @@
-# hw05_final
+# Проект Yatube - социальная сеть для блогеров
 
-[![CI](https://github.com/yandex-praktikum/hw05_final/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/yandex-praktikum/hw05_final/actions/workflows/python-app.yml)
+*** Здесь вы сможете выкладывать записи, читать посты других пользователей, комментировать их, а также подписаться на интересных авторов. ***
+
+
+## Возможности Yatube:
+- Регистрация новых пользователей.
+- Создание и редактирование постов.
+- Привязка поста к группе.
+- Возможность подписки на интересных авторов и отписки.
+- Комментирование и редактирование комментариев к постам.
+
+
+### Как запустить проект:
+
+Клонировать репозиторий и перейти в него в командной строке:
+
+```
+git clone 
+```
+
+```
+cd yatube
+```
+
+Cоздать и активировать виртуальное окружение:
+
+```
+python -m venv venv
+```
+
+```
+source venv/bin/activate
+```
+
+Установить зависимости из файла requirements.txt:
+
+```
+python -m pip install --upgrade pip
+```
+
+```
+pip install -r requirements.txt
+```
+
+Выполнить миграции:
+
+```
+python manage.py migrate
+```
+
+Запустить проект:
+
+```
+python manage.py runserver
+```

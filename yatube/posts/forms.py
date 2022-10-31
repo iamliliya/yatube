@@ -23,6 +23,7 @@ class CommentForm(forms.ModelForm):
         fields = ('text',)
 
     def clean_text(self):
+        """Заменяет слова из списка звездочками."""
         comment = self.cleaned_data['text']
         comment_text = comment.split()
         for i in range(len(comment_text)):
